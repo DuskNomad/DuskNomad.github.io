@@ -1,0 +1,23 @@
+CKEDITOR.plugins.add('lessbuttons',
+{
+	init: function(editor)
+    {
+        require(['jquery'], function($) {
+        var pluginName = 'lessbuttons';
+        editor.addCommand(pluginName, {
+            exec : function( editor )
+            {    
+            	CKEDITOR.advBar = false;
+            	if (CKEDITOR.wbAdv) CKEDITOR.wbAdv.setVisible(editor, false);
+                editor.fire('toolbar:buttons:less');
+            }
+        });
+        editor.ui.addButton('Less',
+            {
+                label: __('Standard buttons'),
+                command: pluginName,
+                icon: CKEDITOR.plugins.getPath('lessbuttons') + 'less2.png'
+            });
+        });
+    }
+});

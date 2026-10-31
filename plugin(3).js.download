@@ -1,0 +1,23 @@
+CKEDITOR.plugins.add('morebuttons',
+{
+	init: function(editor)
+    {
+        require(['jquery'], function($) {
+        var pluginName = 'morebuttons';
+        editor.addCommand(pluginName, {
+            exec : function( editor )
+            {    
+            	CKEDITOR.advBar = true;
+            	if (CKEDITOR.wbAdv) CKEDITOR.wbAdv.setVisible(editor, true);
+                editor.fire('toolbar:buttons:more');
+            }
+        });
+        editor.ui.addButton('More',
+            {
+                label: __('More'),
+                command: pluginName,
+                icon: CKEDITOR.plugins.getPath('morebuttons') + 'more2.png'
+            });
+        });
+    }
+});

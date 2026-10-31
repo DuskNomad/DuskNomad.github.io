@@ -1,0 +1,82 @@
+/**
+ * Tabler Icons – builder overrides.
+ * Local: tabler-icons-300.min.css (stroke 300) in css/tabler-icons-300/; linked in builder.tpl.php / template.tpl.php.
+ */
+
+@font-face {
+	font-family: "tabler-icons-filled";
+	font-style: normal;
+	font-weight: 300;
+	src: url("tabler-icons-filled/fonts/tabler-icons-filled.woff2?v3.38.0") format("woff2"),
+	     url("tabler-icons-filled/fonts/tabler-icons-filled.woff?") format("woff"),
+	     url("tabler-icons-filled/fonts/tabler-icons-filled.ttf?v3.38.0") format("truetype");
+}
+
+/* TODO: replace tabler-icons-filled font files with a subset font built via a font constructor
+   (e.g. pyftsubset / glyphhanger / fonttools) containing only the codepoints listed below.
+   Currently the full filled font (~400KB) is loaded just for the few glyphs we need. */
+
+/* Filled icon variants – each rule sets both font-family and content in one
+   high-specificity (0,2,1) block, beating the 300-weight CSS's (0,1,1). */
+.ti.ti-star-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\f6a6";
+}
+
+.ti.ti-player-play-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\f691";
+}
+
+.ti.ti-circle-plus-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\fef9";
+}
+
+.ti.ti-caret-down-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\fb2a";
+}
+
+.ti.ti-caret-right-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\fb2c";
+}
+
+.ti.ti-chevron-right-filled:before {
+	font-family: "tabler-icons-filled" !important;
+	content: "\101e4";
+}
+
+/* FA size modifier equivalents for migrated icons */
+.ti-lg { font-size: 1.33em; vertical-align: -15%; }
+.ti-2x { font-size: 2em; }
+.ti-3x { font-size: 3em; }
+.ti-4x { font-size: 4em; }
+.ti-5x { font-size: 5em; }
+.ti-fw { width: 1.28571429em; text-align: center; }
+
+/* (0,2,0) – legacy .wb-hlp-arrow is (0,1,0); need two classes to override FA when element has .ti */
+.wb-hlp-arrow.ti {
+	font-family: tabler-icons-300;
+}
+
+/* Tabler use U+FEFF (BOM) for .ti-align-right-2; engines treat it as zero-width/invisible. align-left-2 uses U+FF00 (normal character) so it renders. Use SVG mask for align-right-2. */
+.ti-align-right-2:before {
+	content: "" !important;
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	background-color: currentColor;
+	-webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4v16'/%3E%3Cpath d='M4 6h12'/%3E%3Cpath d='M10 12h6'/%3E%3Cpath d='M6 18h10'/%3E%3C/svg%3E");
+	mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M20 4v16'/%3E%3Cpath d='M4 6h12'/%3E%3Cpath d='M10 12h6'/%3E%3Cpath d='M6 18h10'/%3E%3C/svg%3E");
+	-webkit-mask-size: contain;
+	mask-size: contain;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+	-webkit-mask-position: center;
+	mask-position: center;
+
+	position:relative;
+	top: 1px;
+}

@@ -1,0 +1,129 @@
+﻿CKEDITOR.plugins.add('wbcolor', {
+	requires: 'button',
+	icons: 'textcolor', // %REMOVE_LINE_CORE%
+	init: function(editor) {
+		// spell-checker: ignore wbcolor, textcolor, colorbutton
+		require(['require', 'jquery'], function(require, $) {
+			var ColorPicker = require('ColorPicker').ColorPicker;
+			var ColorPickerPopover = require('ui/ColorPickerPopover').ColorPickerPopover;
+
+			var lang = editor.lang.colorbutton;
+			var popover = null;
+			var popoverVisible = false;
+
+			var colorStyle = {
+				element: 'span',
+				styles: {'color': '#(color)'},
+				overrides: [{element: 'font', attributes: {'color': null}}]
+			};
+
+			var lastSelection = null;
+
+			function applyColor(color) {
+				var elementPath = lastSelection && lastSelection.elementPath ? lastSelection.elementPath : editor.elementPath();
+				let selection = lastSelection && lastSelection.selection ? lastSelection.selection : editor.getSelection();
+				let selectionRanges = lastSelection && lastSelection.selectionRanges ? lastSelection.selectionRanges : editor.getSelection().getRanges();
+				if (!selection || !elementPath) return;
+				if (selection.isCollapsed() && elementPath.lastElement) {
+					let tag = elementPath.lastElement.$.tagName.toLowerCase();
+					if (tag == 'span' || tag == 'p' || tag == 'li' || tag == 'a'
+							|| tag == 'b' || tag == 'i' || tag == 'u'
+							|| tag == 's' || tag == 'strong'
+							|| /^h[0-9]+$/i.test(tag)) {
+						selection.selectElement(elementPath.lastElement);
+						selection.selectRanges(selectionRanges);
+					}
+				}
+				editor.applyStyle(new CKEDITOR.style(colorStyle, {color: color}));
+			}
+
+			function getSelectionColor() {
+				var sourceColor = '',
+					selection = editor.getSelection(),
+					block = selection && selection.getStartElement();
+				if (block && block.$) {
+					var elem = block.$;
+					if (elem.style.color) {
+						sourceColor = elem.style.color;
+					} else if (elem.parentNode && elem.parentNode.childNodes.length == 1
+							&& elem.parentNode.tagName.toLowerCase() == 'span'
+							&& elem.parentNode.style.color) {
+						sourceColor = elem.parentNode.style.color;
+					} else if ('getComputedStyle' in window) {
+						sourceColor = window.getComputedStyle(elem).color;
+					}
+				}
+				return ColorPicker.colorTextToObject(sourceColor || '#ffffff');
+			}
+
+			function setPopoverVisible(visible) {
+				if (popoverVisible === visible) return;
+				popoverVisible = visible;
+				if (visible) {
+					popover.edit(getSelectionColor());
+					editor.ui.instances.Wbcolor.setState(CKEDITOR.TRISTATE_ON);
+				} else {
+					popover.setVisible(false, true);
+					editor.ui.instances.Wbcolor.setState(CKEDITOR.TRISTATE_OFF);
+				}
+			}
+
+			var ignoreSelectionChange = false;
+			editor.addCommand('open_wbcolor', {
+				exec: function (editor) {
+					if (!popoverVisible) {
+						if (!popover) {
+							var elem = $("#" + editor.ui.instances.Wbcolor._.id);
+							popover = new ColorPickerPopover(elem, function(color) {
+								var hexColor = ColorPicker.colorObjectToText(color);
+								ignoreSelectionChange = true;
+								applyColor(hexColor);
+								ignoreSelectionChange = false;
+							});
+							popover.setUseTransparent(false);
+							popover.onHide(() => setPopoverVisible(false));
+						}
+						setPopoverVisible(true);
+					} else {
+						setPopoverVisible(false);
+					}
+				}
+			});
+
+			editor.on('selectionChange', function() {
+				if (popover && popoverVisible && !ignoreSelectionChange) popover.edit(getSelectionColor());
+			}, this);
+			editor.on('beforeDestroy', function() {
+				if (popover) {
+					popover.dispose();
+				}
+			}, this);
+
+			function logSelection() {
+				if (!ignoreSelectionChange && editor.elementPath()) {
+					lastSelection = Object.assign({}, {
+						elementPath: editor.elementPath(),
+						selection: editor.getSelection(),
+						selectionRanges: editor.getSelection().getRanges(),
+					})
+				}
+			}
+			editor.on('contentDom', function () {
+				editor.document.$.addEventListener('selectionchange', logSelection);
+			});
+			editor.on('contentDomUnload', function () {
+				editor.document.$.removeEventListener('selectionchange', logSelection);
+			});
+
+			if (!CKEDITOR.env.hc && editor.ui.addButton) {
+				editor.ui.addButton('Wbcolor', {
+					label: lang.textColorTitle,
+					command: 'open_wbcolor',
+					editorFocus: 1,
+					toolbar: 'colors,10',
+					icon: 'textcolor'
+				});
+			}
+		});
+	}
+});

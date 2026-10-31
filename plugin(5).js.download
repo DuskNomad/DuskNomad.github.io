@@ -1,0 +1,40 @@
+CKEDITOR.plugins.add('editstyles',
+{
+	init: function(editor)
+    {
+        var pluginName = 'editstyles';
+        editor.addCommand(pluginName, {
+            exec : function( editor )
+            {    
+            	wb_builder.site.changeStyles();
+            }
+        });
+        editor.ui.addButton('EStyles',
+            {
+                label: 'Edit styles',
+                command: pluginName,
+                icon: CKEDITOR.plugins.getPath('editstyles') + 'button.png'
+            });
+
+		editor.on('change', function () {
+			var selection = editor.getSelection();
+			if (selection) {
+				var selectedElement = selection.getStartElement();
+
+				if (selectedElement) {
+					if (selectedElement.$ && selectedElement.$.style.fontSize) {
+						var style = window.getComputedStyle(selectedElement.$);
+						var lineHeightM = parseFloat(window.getComputedStyle(selectedElement.$.parentNode).lineHeight) / parseFloat(window.getComputedStyle(selectedElement.$.parentNode).fontSize);
+
+						if (lineHeightM) {
+							var newLineHeight = (parseFloat(selectedElement.$.style.fontSize) * lineHeightM).toFixed(2) + 'px'; // Коэффициент можно изменить
+							selectedElement.setStyle('line-height', newLineHeight);
+						}
+					} else {
+						selectedElement.setStyle('line-height', null);
+					}
+				}
+			}
+		});
+    }
+});

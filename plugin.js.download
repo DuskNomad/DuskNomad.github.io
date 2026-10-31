@@ -1,0 +1,94 @@
+require(['require'], function(require) {
+	var itemType = 'WbStyleSelector';
+	var tstIdx = 0;
+
+	var Wrapper = function() {};
+	Wrapper.prototype.render = function(editor, output) {
+		var TextStyleSelector = require('ui/TextStyleSelector').TextStyleSelector;
+		
+		var id = itemType + '_' + tstIdx; ++tstIdx;
+		var instance = new TextStyleSelector(
+				function(styleDef) { return new CKEDITOR.style(styleDef); },
+				{
+					apply: function(style) {
+						var elementPath = editor.elementPath();
+						if (elementPath && style.checkActive && !style.checkActive(elementPath, editor)) {
+							editor.applyStyle(style);
+						}
+					},
+					remove: function(style) {
+						var elementPath = editor.elementPath();
+						if (elementPath && style.checkActive && style.checkActive(elementPath, editor)) {
+							try {
+								editor.removeStyle(style);
+							} catch (_) {}
+						}
+					}
+				});
+		var attached = false;
+
+		var oriElem = editor.element ? editor.element.$ : null;
+		var updateSelectionsFunc = function(e) {
+			if (e.name == 'keyup' && e.data && e.data.$ && e.data.$.key) {
+				var key = e.data.$.key;
+				if (key != 'ArrowUp'
+						&& key != 'ArrowRight'
+						&& key != 'ArrowDown'
+						&& key != 'ArrowLeft'
+						&& key != 'Home'
+						&& key != 'End') {
+					return;
+				}
+			}
+			window.requestAnimationFrame(function() {
+				var elementPath = editor.elementPath();
+				var selection = editor.getSelection();
+				instance.onSelectionChange(elementPath ? elementPath.elements : [], !selection || selection.isCollapsed());
+			});
+		};
+		if (oriElem) {
+			oriElem.addEventListener('mouseup', updateSelectionsFunc);
+			oriElem.addEventListener('keyup', updateSelectionsFunc);
+		}
+		editor.on('mode', function() {
+			if (attached) return;
+			attached = true;
+			var tmpElem = CKEDITOR.document.getById(id);
+			if (tmpElem) {
+				instance.replaceElem(tmpElem.$).then(function() {
+					var elementPath = editor.elementPath();
+					var selection = editor.getSelection();
+					instance.onSelectionChange(elementPath ? elementPath.elements : [], !selection || selection.isCollapsed());
+				});
+			}
+		}, this);
+		editor.on('selectionChange', function(e) {
+			var selection = editor.getSelection();
+			instance.onSelectionChange(e.data.path.elements, !selection || selection.isCollapsed());
+		}, this);
+		editor.on('toolbar:buttons:more', function() {
+			instance.onToolbarResize();
+		});
+		editor.on('toolbar:buttons:less', function() {
+			instance.onToolbarResize();
+		});
+		editor.on('beforeDestroy', function() {
+			if (oriElem) {
+				oriElem.removeEventListener('mouseup', updateSelectionsFunc);
+				oriElem.removeEventListener('keyup', updateSelectionsFunc);
+			}
+			instance.destroy();
+		}, this);
+
+		var html = '<div id="' + id + '" class="wb-text-style-selector-spacer"></div>';
+		if (output) output.push(html);
+		return html;
+	};
+
+	var handler = { create: function(definition) { return new Wrapper(definition); } };
+
+	CKEDITOR.plugins.add(itemType, {
+		beforeInit: function(editor) { editor.ui.addHandler(itemType, handler); },
+		init: function(editor) { editor.ui.add(itemType, itemType, {}); }
+	});
+});
